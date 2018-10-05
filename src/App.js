@@ -40,8 +40,8 @@ class DisplayArea extends Component {
     const resultDisplay = this.filterResultDisplay(firstOperand, operator, secondOperand);
     return (
       <div className="display-area">
-        <ResultArea text={resultDisplay} />
-        <IndividualInputArea text={inputDisplay}/>
+        <ResultArea className="result-area" text={resultDisplay} />
+        <IndividualInputArea className="input-area" text={inputDisplay}/>
       </div>
     );
   }
@@ -167,25 +167,49 @@ class Button extends Component {
       }
     }
   }
+  isInteger(operand) {
+    return (operand%1) === 0;
+  }
+  isPlusOrMinus(operator) {
+    return (operator === "+") || (operator === "-");
+  }
   calculateByOperator(firstOperand, operator, secondOperand, buttonPressed) {
     let result;
+    let counter = 0;
+    let firstOperandNumber = +firstOperand;
+    let secondOperandNumber = +secondOperand;
+    while( !(this.isInteger(firstOperandNumber) && this.isInteger(secondOperandNumber)) ) {
+      if(this.isPlusOrMinus(operator)) {
+        firstOperandNumber = firstOperandNumber * 10;
+        secondOperandNumber = secondOperandNumber * 10;
+        counter++;
+      } else if(operator === "x") {
+        firstOperandNumber = firstOperandNumber * 10;
+        secondOperandNumber = secondOperandNumber * 10;
+        counter = counter + 2;
+      } else {
+        firstOperandNumber = firstOperandNumber * 10;
+        secondOperandNumber = secondOperandNumber * 10;
+      }
+    }
     switch(operator) {
       case "+":
-        result = +firstOperand + +secondOperand;
+        result = (Math.round(firstOperandNumber) + Math.round(secondOperandNumber)) / (10 ** counter);
         break;
       case "-":
-        result = +firstOperand - +secondOperand;
+        result = (Math.round(firstOperandNumber) - Math.round(secondOperandNumber))  / (10 ** counter);
         break;
       case "x":
-        result = +firstOperand * +secondOperand;
+        result = (Math.round(firstOperandNumber) * Math.round(secondOperandNumber))  / (10 ** counter);
+        //("" + (+firstOperand * +secondOperand).toFixed(4)).replace(/0+$/, '').replace(/\.$/, '');
         break;
       case "/":
-        result = +firstOperand / +secondOperand;
+        result = Math.round(firstOperandNumber) / Math.round(secondOperandNumber);
         break;
       default:
         break;
     }
-    let newFirstOperand = ("" + result).split('');
+    let newFirstOperand = result.toString().split('');
     let newOperator = buttonPressed;
     let newSecondOperand = [];
     store.dispatch(setFirstOperand(newFirstOperand));
@@ -248,26 +272,45 @@ class Button extends Component {
   calculateByEqual() {
     let firstOperand = store.getState().firstOperand.join('');
     let secondOperand = store.getState().secondOperand.join('');
+    let counter = 0;
+    let firstOperandNumber = +firstOperand;
+    let secondOperandNumber = +secondOperand;
     let operator = store.getState().operator;
+
+    while( !(this.isInteger(firstOperandNumber) && this.isInteger(secondOperandNumber)) ) {
+      if(this.isPlusOrMinus(operator)) {
+        firstOperandNumber = firstOperandNumber * 10;
+        secondOperandNumber = secondOperandNumber * 10;
+        counter++;
+      } else if(operator === "x") {
+        firstOperandNumber = firstOperandNumber * 10;
+        secondOperandNumber = secondOperandNumber * 10;
+        counter = counter + 2;
+      } else {
+        firstOperandNumber = firstOperandNumber * 10;
+        secondOperandNumber = secondOperandNumber * 10;
+      }
+    }
     if( (!this.isEmpty(operator)) && (!this.isEmpty(secondOperand)) ) {
       let result;
       switch(operator) {
         case "+":
-          result = +firstOperand + +secondOperand;
+          result = (Math.round(firstOperandNumber) + Math.round(secondOperandNumber)) / (10 ** counter);
           break;
         case "-":
-          result = +firstOperand - +secondOperand;
+          result = (Math.round(firstOperandNumber) - Math.round(secondOperandNumber))  / (10 ** counter);
           break;
         case "x":
-          result = +firstOperand * +secondOperand;
+          result = (Math.round(firstOperandNumber) * Math.round(secondOperandNumber))  / (10 ** counter);
+          //("" + (+firstOperand * +secondOperand).toFixed(4)).replace(/0+$/, '').replace(/\.$/, '');
           break;
         case "/":
-          result = +firstOperand / +secondOperand;
+          result = Math.round(firstOperandNumber) / Math.round(secondOperandNumber);
           break;
         default:
           break;
       }
-      let newFirstOperand = ("" + result).split('');
+      let newFirstOperand = result.toString().split('');
       let newOperator = "";
       let newSecondOperand = [];
       store.dispatch(setFirstOperand(newFirstOperand));
@@ -288,7 +331,7 @@ class Button extends Component {
     let secondOperand = store.getState().secondOperand.join('');
     let operator = store.getState().operator;
     if(!this.isEmpty(secondOperand)) {
-      let newSecondOperand = ((""+(+secondOperand)).slice(0, -1)).split('');
+      let newSecondOperand = ((""+secondOperand).slice(0, -1)).split('');
       store.dispatch(setSecondOperand(newSecondOperand));
     } else if( this.isEmpty(secondOperand) && !this.isEmpty(operator) ) {
       let newOperator = "";
@@ -297,7 +340,7 @@ class Button extends Component {
       let newFirstOperand = ["0"];
       store.dispatch(setFirstOperand(newFirstOperand));
     } else {
-      let newFirstOperand = ((""+(+firstOperand)).slice(0, -1)).split('');
+      let newFirstOperand = ((""+firstOperand).slice(0, -1)).split('');
       store.dispatch(setFirstOperand(newFirstOperand));
     }
   }
